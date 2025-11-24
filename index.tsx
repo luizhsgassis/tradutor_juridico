@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GoogleGenAI, Type, Chat } from "@google/genai";
@@ -48,7 +47,8 @@ const App = () => {
     const chatRef = useRef<Chat | null>(null);
     const chatWindowRef = useRef<HTMLDivElement>(null);
 
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Removed global initialization to prevent crash on render if env is missing
+    // const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     // --- Effects ---
     useEffect(() => {
@@ -93,6 +93,9 @@ const App = () => {
         const prompt = `O seguinte texto é um trecho de um documento jurídico brasileiro. Analise-o e forneça: 1. Uma 'translation' (tradução) para português coloquial e simples, mantendo a formatação original. 2. 'summaryPoints' (pontos principais) em uma lista. 3. Uma 'jurimetrics' (análise jurimétrica) simulada, contendo: 'probabilityOfSuccess' (um número de 0 a 100), 'estimatedDuration' (uma string, ex: '6-12 meses'), 'positiveFactors' (lista de fatores positivos), e 'negativeFactors' (lista de fatores negativos).\n\nTexto: "${inputText}"`;
 
         try {
+            // Initialize AI client here to safely handle potential config errors
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            
             const response = await ai.models.generateContent({
                 model,
                 contents: prompt,
@@ -143,7 +146,7 @@ const App = () => {
             setView('result');
         } catch (e) {
             console.error(e);
-            setError('Ocorreu um erro ao traduzir o texto. Tente novamente.');
+            setError('Ocorreu um erro ao traduzir o texto. Verifique sua conexão ou configuração de API.');
         } finally {
             setIsLoading(false);
         }
@@ -160,6 +163,9 @@ const App = () => {
         setChatHistory([]);
         
         try {
+            // Initialize AI client locally
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
             chatRef.current = ai.chats.create({
                 model: 'gemini-2.5-flash',
                 config: {
@@ -172,7 +178,7 @@ const App = () => {
             setChatHistory([{ role: 'model', text: response.text }]);
         } catch (e) {
             console.error(e);
-            setChatHistory([{ role: 'model', text: 'Desculpe, não consegui iniciar o chat. Tente novamente.' }]);
+            setChatHistory([{ role: 'model', text: 'Desculpe, não consegui iniciar o chat. Verifique a configuração da API.' }]);
         } finally {
             setIsLoading(false);
         }
