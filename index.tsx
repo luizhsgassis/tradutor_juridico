@@ -85,6 +85,13 @@ const App = () => {
             setError('Por favor, insira um texto para traduzir.');
             return;
         }
+
+        // Verificação de segurança da API Key
+        if (!process.env.API_KEY) {
+            setError('Erro de Configuração: A chave de API não foi encontrada. No Netlify, configure a variável de ambiente "API_KEY" nas configurações do site.');
+            return;
+        }
+
         setIsLoading(true);
         setError('');
         setResult(null);
@@ -146,7 +153,7 @@ const App = () => {
             setView('result');
         } catch (e) {
             console.error(e);
-            setError('Ocorreu um erro ao traduzir o texto. Verifique sua conexão ou configuração de API.');
+            setError('Ocorreu um erro ao traduzir o texto. Verifique sua conexão ou a validade da API Key.');
         } finally {
             setIsLoading(false);
         }
@@ -156,6 +163,12 @@ const App = () => {
         setIsChatOpen(true);
         
         if (chatRef.current && chatHistory.length > 0) {
+            return;
+        }
+
+        // Verificação de segurança da API Key
+        if (!process.env.API_KEY) {
+            setChatHistory([{ role: 'model', text: 'Erro de Configuração: A chave de API não foi encontrada. Por favor, configure a variável de ambiente "API_KEY" no painel do Netlify.' }]);
             return;
         }
 
@@ -178,7 +191,7 @@ const App = () => {
             setChatHistory([{ role: 'model', text: response.text }]);
         } catch (e) {
             console.error(e);
-            setChatHistory([{ role: 'model', text: 'Desculpe, não consegui iniciar o chat. Verifique a configuração da API.' }]);
+            setChatHistory([{ role: 'model', text: 'Desculpe, não consegui iniciar o chat. Verifique se a API Key é válida.' }]);
         } finally {
             setIsLoading(false);
         }
